@@ -16,7 +16,6 @@ module Airbrake::RakeHandler
       Airbrake.notify_or_ignore(exception,
                                 :component => 'rake',
                                 :action    => reconstruct_command_line,
-                                :cgi_data  => environment_info,
                                 :ignore    => Airbrake.configuration.ignore_rake)
     end
 
@@ -27,12 +26,6 @@ module Airbrake::RakeHandler
     ARGV.join(' ')
   end
 
-  def environment_info
-    ENV.reject do |k|
-      Airbrake.configuration.rake_environment_filters.include? k
-    end
-  end
-
   # This module brings Rake 0.8.7 error handling to 0.9.0 standards
   module Rake087Methods
     # Method taken from Rake 0.9.0 source
@@ -41,7 +34,7 @@ module Airbrake::RakeHandler
     def standard_exception_handling
       begin
         yield
-      rescue SystemExit => ex
+      rescue SystemExit
         # Exit silently with current status
         raise
       rescue OptionParser::InvalidOption => ex
